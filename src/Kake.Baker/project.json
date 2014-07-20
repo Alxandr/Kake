@@ -1,0 +1,25 @@
+﻿{
+    "dependencies": {
+        "K.Roslyn": "1.0.0-*",
+        "Microsoft.Framework.Runtime.Interfaces": "1.0.0-*",
+        "Microsoft.Framework.Runtime.Roslyn": "1.0.0-*",
+        "Microsoft.Framework.Runtime.Common": "1.0.0-*"
+    },
+
+    "configurations" : {
+        "net45" : {
+            "dependencies": {
+                "System.Runtime": ""
+            }
+        },
+        "k10" : { 
+            "dependencies": {
+                "System.Console": "4.0.0.0",
+                "System.IO":  "4.0.0.0",
+                "System.IO.FileSystem": "4.0.10.0",
+                "System.Text.RegularExpressions": "4.0.0.0",
+                "System.Linq": "4.0.0.0"
+            }
+        }
+    }
+}

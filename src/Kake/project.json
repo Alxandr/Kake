@@ -1,0 +1,15 @@
+﻿{
+    "dependencies": {
+        "Kake.Baker": "",
+        "Microsoft.Framework.Runtime.Interfaces": "1.0.0-*"
+    },
+
+    "configurations" : {
+        "net45" : { },
+        "k10" : { 
+            "dependencies": {
+                "System.Console": "4.0.0.0"
+            }
+        }
+    }
+}
