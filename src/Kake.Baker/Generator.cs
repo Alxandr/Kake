@@ -73,7 +73,7 @@ namespace Kake
             string file,
             KakeUnit unit,
             IApplicationEnvironment applicationEnvironment,
-            ILibraryExportProvider libraryExportProvider,
+            ILibraryManager libraryManager,
             IAssemblyLoaderEngine assemblyLoaderEngine)
         {
             var options = new CSharpParseOptions(LanguageVersion.Experimental, kind: SourceCodeKind.Regular);
@@ -192,77 +192,10 @@ namespace Kake
                                 .WithBody(
                                     SyntaxFactory.Block(statements.ToImmutable()))))));
 
-            var syntaxTree = SyntaxFactory.SyntaxTree(syntax, path: file, encoding: Encoding.UTF8);
+            var syntaxTree = (CSharpSyntaxTree)SyntaxFactory.SyntaxTree(syntax, path: file, encoding: Encoding.UTF8);
 
-            var settings = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            var compilation = CSharpCompilation.Create(name)
-                .WithOptions(settings)
-                .AddSyntaxTrees(syntaxTree);
-
-            var refs = loads.SelectMany(l => l.Args)
-                .Concat(new[] { "Kake" })
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Select(a => libraryExportProvider.GetLibraryExport(a, applicationEnvironment.TargetFramework, applicationEnvironment.Configuration));
-
-            foreach (var r in refs)
-            {
-                foreach (var sourceReference in r.SourceReferences)
-                {
-                    var sourceFileReference = sourceReference as ISourceFileReference;
-                    if (sourceFileReference != null)
-                    {
-                        var sourcePath = sourceFileReference.Path;
-                        compilation = compilation.AddSyntaxTrees(CreateSyntaxTree(sourcePath, options));
-                    }
-                }
-
-                foreach (var metadataReference in r.MetadataReferences)
-                {
-                    var reference = ConvertMetadataReference(metadataReference);
-                    compilation = compilation.AddReferences(reference);
-                }
-            }
-
-            using (var pdbStream = new MemoryStream())
-            using (var assemblyStream = new MemoryStream())
-            {
-                EmitResult result = null;
-
-                if (PlatformHelper.IsMono)
-                {
-                    result = compilation.Emit(assemblyStream);
-                }
-                else
-                {
-                    result = compilation.Emit(assemblyStream, pdbStream: pdbStream);
-                }
-
-                if (!result.Success)
-                {
-                    // todo: add diagnostics
-                    throw new CompilationException(GetErrors(result.Diagnostics));
-                }
-
-                Assembly assembly = null;
-
-                // Rewind the stream
-                assemblyStream.Seek(0, SeekOrigin.Begin);
-
-                if (PlatformHelper.IsMono)
-                {
-                    // Pdbs aren't supported on mono
-                    assembly = assemblyLoaderEngine.LoadStream(assemblyStream, pdbStream: null);
-                }
-                else
-                {
-                    // Rewind the pdb stream
-                    pdbStream.Seek(0, SeekOrigin.Begin);
-
-                    assembly = assemblyLoaderEngine.LoadStream(assemblyStream, pdbStream);
-                }
-
-                return assembly;
-            }
+            var compilerService = new RoslynCompilationService(applicationEnvironment, assemblyLoaderEngine, libraryManager);
+            return compilerService.Compile(syntaxTree, loads.SelectMany(l => l.Args).Concat(new[] { "Kake" }).Distinct(), name);
         }
 
         private static SyntaxTree CreateSyntaxTree(string sourcePath, CSharpParseOptions parseOptions)
@@ -273,52 +206,6 @@ namespace Kake
 
                 return CSharpSyntaxTree.ParseText(sourceText, options: parseOptions, path: sourcePath);
             }
-        }
-
-        private static MetadataReference ConvertMetadataReference(IMetadataReference metadataReference)
-        {
-            var roslynReference = metadataReference as IRoslynMetadataReference;
-
-            if (roslynReference != null)
-            {
-                return roslynReference.MetadataReference;
-            }
-
-            var embeddedReference = metadataReference as IMetadataEmbeddedReference;
-
-            if (embeddedReference != null)
-            {
-                return new MetadataImageReference(embeddedReference.Contents);
-            }
-
-            var fileMetadataReference = metadataReference as IMetadataFileReference;
-
-            if (fileMetadataReference != null)
-            {
-                return new MetadataFileReference(fileMetadataReference.Path);
-            }
-
-            var projectReference = metadataReference as IMetadataProjectReference;
-            if (projectReference != null)
-            {
-                using (var ms = new MemoryStream())
-                {
-                    projectReference.WriteReferenceAssemblyStream(ms);
-
-                    ms.Seek(0, SeekOrigin.Begin);
-
-                    return new MetadataImageReference(ms);
-                }
-            }
-
-            throw new NotSupportedException();
-        }
-
-        private static IList<string> GetErrors(IEnumerable<Diagnostic> diagnostis)
-        {
-            var formatter = new DiagnosticFormatter();
-
-            return diagnostis.Select(d => formatter.Format(d)).ToList();
         }
     }
 }

@@ -29,16 +29,16 @@ hello:
 ";
 
         IApplicationEnvironment _applicationEnvironment;
-        ILibraryExportProvider _libraryExportProvider;
+        ILibraryManager _libraryManager;
         IAssemblyLoaderEngine _assemblyLoaderEngine;
 
         public Program(
             IApplicationEnvironment applicationEnvironment,
-            ILibraryExportProvider libraryExportProvider,
+            ILibraryManager libraryManager,
             IAssemblyLoaderEngine assemblyLoaderEngine)
         {
             _applicationEnvironment = applicationEnvironment;
-            _libraryExportProvider = libraryExportProvider;
+            _libraryManager = libraryManager;
             _assemblyLoaderEngine = assemblyLoaderEngine;
         }
 
@@ -47,7 +47,7 @@ hello:
             try
             {
                 var unit = await Parser.Parse(new StringReader(test));
-                var tree = Generator.Generate("build.kake", unit, _applicationEnvironment, _libraryExportProvider, _assemblyLoaderEngine);
+                var tree = Generator.Generate("build.kake", unit, _applicationEnvironment, _libraryManager, _assemblyLoaderEngine);
                 Console.ReadLine();
             }
             catch (Exception e)

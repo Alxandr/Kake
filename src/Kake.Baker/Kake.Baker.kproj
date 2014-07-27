@@ -35,6 +35,7 @@
     <Compile Include="Line.cs" />
     <Compile Include="Meta.cs" />
     <Compile Include="Parse.cs" />
+    <Compile Include="RoslynCompilationService.cs" />
     <Compile Include="Source.cs" />
     <Compile Include="Target.cs" />
   </ItemGroup>
