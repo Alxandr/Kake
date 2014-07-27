@@ -63,11 +63,8 @@ namespace Kake
 
                     if (!result.Success)
                     {
-                        if (!result.Success)
-                        {
-                            // todo: add diagnostics
-                            throw new CompilationException(GetErrors(result.Diagnostics));
-                        }
+                        // todo: add diagnostics
+                        throw new CompilationException(GetErrors(result.Diagnostics));
                     }
 
                     Assembly assembly;
@@ -122,7 +119,7 @@ namespace Kake
             return references;
         }
 
-        private MetadataReference CreateMetadataFileReference(string path)
+        private static MetadataReference CreateMetadataFileReference(string path)
         {
             return _metadataFileCache.GetOrAdd(path, _ =>
             {
@@ -165,7 +162,8 @@ namespace Kake
 
             if (fileMetadataReference != null)
             {
-                return new MetadataFileReference(fileMetadataReference.Path);
+                
+                return CreateMetadataFileReference(fileMetadataReference.Path);
             }
 
             var projectReference = metadataReference as IMetadataProjectReference;
