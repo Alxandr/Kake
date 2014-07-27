@@ -161,38 +161,48 @@ namespace Kake
                         )
                     )
                 )
+                .NormalizeWhitespace("  ")
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration(
-                            className)
+                        SyntaxFactory.ClassDeclaration(className)
                         .WithBaseList(
                             SyntaxFactory.BaseList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName(
-                                        BaseClass))))
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.ParseTypeName(BaseClass)
+                                )
+                            )
+                        )
+                        .NormalizeWhitespace("  ")
                         .WithMembers(
                             SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                 SyntaxFactory.ConstructorDeclaration(
-                                    SyntaxFactory.Identifier(
-                                        className))
+                                    SyntaxFactory.Identifier(className)
+                                )
                                 .WithModifiers(
                                     SyntaxFactory.TokenList(
                                         SyntaxFactory.Token(
-                                            SyntaxKind.PublicKeyword)))
+                                            SyntaxKind.PublicKeyword
+                                        )
+                                    )
+                                )
                                 .WithInitializer(
                                     SyntaxFactory.ConstructorInitializer(
                                         SyntaxKind.BaseConstructorInitializer,
                                         SyntaxFactory.ArgumentList()
-                                        .WithOpenParenToken(
-                                            SyntaxFactory.MissingToken(
-                                                SyntaxKind.OpenParenToken))
-                                        .WithCloseParenToken(
-                                            SyntaxFactory.MissingToken(
-                                                SyntaxKind.CloseParenToken))))
+                                    )
+                                )
+                                .NormalizeWhitespace("  ")
                                 .WithBody(
-                                    SyntaxFactory.Block(statements.ToImmutable()))))));
+                                    SyntaxFactory.Block(statements)
+                                )
+                            )
+                        )
+                    )
+                );
 
             var syntaxTree = (CSharpSyntaxTree)SyntaxFactory.SyntaxTree(syntax, path: file, encoding: Encoding.UTF8);
+            //var syntaxTree = (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(syntax.NormalizeWhitespace("  ").ToFullString(), path: file, encoding: Encoding.UTF8);
+            Console.WriteLine(syntaxTree.GetRoot().ToFullString());
 
             var compilerService = new RoslynCompilationService(applicationEnvironment, assemblyLoaderEngine, libraryManager);
             return compilerService.Compile(syntaxTree, loads.SelectMany(l => l.Args).Concat(new[] { "Kake" }).Distinct(), name);
