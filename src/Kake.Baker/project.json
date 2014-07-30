@@ -1,4 +1,6 @@
 ﻿{
+    "version": "0.1.0-*",
+
     "dependencies": {
         "K.Roslyn": "1.0.0-*",
         "Microsoft.Framework.Runtime.Interfaces": "1.0.0-*",
@@ -6,7 +8,7 @@
         "Microsoft.Framework.Runtime.Common": "1.0.0-*"
     },
 
-    "configurations" : {
+    "frameworks" : {
         "net45" : {
             "dependencies": {
                 "System.Runtime": ""

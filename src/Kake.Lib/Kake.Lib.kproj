@@ -10,8 +10,8 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\AspNet\Microsoft.Web.AspNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>332c4a6d-bbc5-4289-98e1-3926c3057263</ProjectGuid>
-    <OutputType>Console</OutputType>
+    <ProjectGuid>2f6500de-d3a8-4f07-9b0b-771d25a3e117</ProjectGuid>
+    <OutputType>Library</OutputType>
     <RootNamespace>Kake</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="$(OutputType) == 'Console'">
@@ -25,16 +25,13 @@
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <CommandLineArguments>
-    </CommandLineArguments>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="ModuleStore.cs" />
-    <Compile Include="Program.cs" />
-  </ItemGroup>
   <ItemGroup>
     <Content Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="IModuleStore.cs" />
+    <Compile Include="Module.cs" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\AspNet\Microsoft.Web.AspNet.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>

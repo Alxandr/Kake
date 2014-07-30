@@ -100,7 +100,9 @@ namespace Kake
                         )
                     )
                 );
-                statements.Add(SyntaxFactory.ExpressionStatement(invoke).NormalizeWhitespace("  "));
+                statements.Add(SyntaxFactory.ExpressionStatement(invoke).NormalizeWhitespace("  ").WithLeadingTrivia(
+                    SyntaxFactory.Whitespace(Environment.NewLine)
+                ));
             }
 
             statements.AddRange(MakeBody(unit.Code, options));
@@ -114,18 +116,10 @@ namespace Kake
                             SyntaxFactory.Argument(
                                 SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression)
                                     .WithToken(SyntaxFactory.Literal(target.Name))
-                            ),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.ParenthesizedLambdaExpression(
-                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
-                                    SyntaxFactory.ParameterList(),
-                                    SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken),
-                                    SyntaxFactory.Block(MakeBody(target.Code, options))
-                                )
                             )
                         })
                     )
-                );
+                ).NormalizeWhitespace("  ");
 
                 foreach (var m in target.Meta)
                 {
@@ -144,17 +138,60 @@ namespace Kake
                                     )
                                 )
                             )
-                        ).NormalizeWhitespace("  ")
-                    );
+                        )
+                    ).NormalizeWhitespace("  ");
                 }
 
-                statements.Add(SyntaxFactory.ExpressionStatement(invoke));
+                invoke = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        invoke,
+                        SyntaxFactory.IdentifierName("Action")
+                    ),
+                    SyntaxFactory.ArgumentList().WithArguments(
+                        SyntaxFactory.SeparatedList(
+                            new[] { SyntaxFactory.Argument(
+                                SyntaxFactory.ParenthesizedLambdaExpression(
+                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
+                                    SyntaxFactory.ParameterList().WithParameters(
+                                        SyntaxFactory.SeparatedList(
+                                            new[] {
+                                                SyntaxFactory.Parameter(
+                                                    SyntaxFactory.Identifier("_")
+                                                ) }
+                                        )
+                                    ),
+                                    SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken),
+                                    SyntaxFactory.Block(MakeBody(target.Code, options))
+                                        .WithOpenBraceToken(
+                                            SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                                            .WithTrailingTrivia(
+                                                SyntaxFactory.Whitespace(Environment.NewLine)
+                                            )
+                                        )
+                                        .WithCloseBraceToken(
+                                            SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                                            .WithLeadingTrivia(
+                                                SyntaxFactory.Whitespace(Environment.NewLine)
+                                            )
+                                        )
+                                )
+                            ) }
+                        )
+                    )
+                );
+
+                statements.Add(SyntaxFactory.ExpressionStatement(invoke).WithLeadingTrivia(
+                    SyntaxFactory.Whitespace(Environment.NewLine)
+                ).WithTrailingTrivia(
+                    SyntaxFactory.Whitespace(Environment.NewLine)
+                ));
             }
 
             var syntax = SyntaxFactory.CompilationUnit()
                 .WithUsings(
                     SyntaxFactory.List(
-                        usings.SelectMany(u => u.Args).Select(u =>
+                        usings.SelectMany(u => u.Args).Distinct().Select(u =>
                             SyntaxFactory.UsingDirective(
                                 SyntaxFactory.IdentifierName(u)
                             )
@@ -175,20 +212,15 @@ namespace Kake
                         .NormalizeWhitespace("  ")
                         .WithMembers(
                             SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                                SyntaxFactory.ConstructorDeclaration(
-                                    SyntaxFactory.Identifier(className)
+                                SyntaxFactory.MethodDeclaration(
+                                    SyntaxFactory.ParseTypeName("System.Threading.Tasks.Task"),
+                                    SyntaxFactory.Identifier("Configure")
                                 )
                                 .WithModifiers(
                                     SyntaxFactory.TokenList(
-                                        SyntaxFactory.Token(
-                                            SyntaxKind.PublicKeyword
-                                        )
-                                    )
-                                )
-                                .WithInitializer(
-                                    SyntaxFactory.ConstructorInitializer(
-                                        SyntaxKind.BaseConstructorInitializer,
-                                        SyntaxFactory.ArgumentList()
+                                        SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                                        SyntaxFactory.Token(SyntaxKind.OverrideKeyword),
+                                        SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
                                     )
                                 )
                                 .NormalizeWhitespace("  ")
@@ -196,6 +228,9 @@ namespace Kake
                                     SyntaxFactory.Block(statements)
                                 )
                             )
+                        )
+                        .WithLeadingTrivia(
+                            SyntaxFactory.Whitespace(Environment.NewLine + Environment.NewLine)
                         )
                     )
                 );

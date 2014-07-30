@@ -1,14 +1,22 @@
 ﻿{
+    "version": "0.1.0-*",
+
     "dependencies": {
         "Kake.Baker": "",
-        "Microsoft.Framework.Runtime.Interfaces": "1.0.0-*"
+        "Kake.Lib": "",
+        "Kake.Common": "",
+        "Microsoft.Framework.Runtime.Interfaces": "1.0.0-*",
+        "Microsoft.Framework.Runtime.Common": "1.0.0-*",
+        "Microsoft.Framework.CommandLineUtils": "1.0.0-*"
     },
 
-    "configurations" : {
+    "frameworks" : {
         "net45" : { },
         "k10" : { 
             "dependencies": {
-                "System.Console": "4.0.0.0"
+                "System.Console": "4.0.0.0",
+                "System.Threading.Tasks": "4.0.10.0",
+                "System.Linq": "4.0.0.0"
             }
         }
     }
